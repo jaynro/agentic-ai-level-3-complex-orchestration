@@ -2,7 +2,19 @@
 
 ## Overview
 
-The Self-Healing Engineer is an AI agent designed to autonomously diagnose and fix software issues, embodying the role of a DevOps/SRE or bug-fixing developer. This project demonstrates an advanced application of agentic AI: the agent uses a looping strategy to iteratively attempt solutions until the problem is resolved or a limit is reached. It integrates with a development environment – reading error logs and test results, editing code or configurations, running tests/commands – much like a human engineer working in an IDE.
+The **Self-Healing Engineer** is an AI agent designed to autonomously diagnose and fix software issues, embodying the role of a DevOps/SRE or bug-fixing developer.
+
+**Note to Trainees:** This project acts as a **reference implementation**. While you can use this structure as a learning tool, we strongly encourage you to build a Capstone Project based on your own inspiration and domain expertise.
+
+### Guidelines for Your Capstone
+When designing your own agent, ensure it demonstrates mastery of the following topics:
+1.  **Iterative Problem Solving:** Your agent must use a "Looping" pattern (try $\to$ analyze feedback $\to$ retry) rather than a single-shot response.
+2.  **Tool Usage:** The agent must interact with an external environment (e.g., file systems, APIs, databases, or CLIs) to perform real actions.
+3.  **Error Handling & Escalation:** The system must recognize when it fails and either correct itself or escalate to a human.
+4.  **Real-World Utility:** Focus on a specific domain problem (e.g., Data Cleaning, Automated Research, Security Auditing) rather than generic chat.
+
+---
+
 
 ### Scenarios:
 
@@ -10,6 +22,45 @@ The Self-Healing Engineer is an AI agent designed to autonomously diagnose and f
 * **Automated Config/Environment Remediation:** When a system error or misconfiguration is detected, the agent diagnoses and applies the correct fix.
 
 This illustrates the potential of zero-downtime systems powered by Google’s Antigravity framework.
+
+---
+
+## System Workflow
+
+The core of this agent is the **Remediation Loop**. It does not simply guess once; it iterates based on feedback from the environment.
+
+```mermaid
+graph TD
+    %% Initial State
+    Start([Start: Test Fail / Alert]) --> ReadLogs[Tool: Read Logs & Code]
+    
+    %% The Loop
+    subgraph "Autonomy Loop (Max N Attempts)"
+        ReadLogs --> Analyze[LLM: Diagnose & Plan Fix]
+        Analyze -->|Proposed Patch| Apply[Tool: Apply Fix / Edit Config]
+        Apply --> Verify[Tool: Run Tests / Restart Service]
+        Verify --> Check{Is Issue Fixed?}
+    end
+
+    %% Outcomes
+    Check -- No (Retry) --> ReadLogs
+    Check -- Yes --> Success([Success: Commit & Notify])
+    
+    %% Escalation path
+    Check -- No (Max Attempts Reached) --> Escalate([Escalation: Human Intervention])
+
+    %% Styling
+    classDef tool fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef logic fill:#dfd,stroke:#333,stroke-width:2px;
+    classDef term fill:#f9f,stroke:#333,stroke-width:2px;
+
+    class ReadLogs,Apply,Verify tool;
+    class Analyze,Check logic;
+    class Start,Success,Escalate term;
+
+```
+
+---
 
 ## Features
 
@@ -34,15 +85,17 @@ Located in `buggy_project/`:
 
 ```bash
 python run_self_healing.py
+
 ```
 
 **Console Output Example:**
 
-```
+```text
 [Attempt 1] Test failure summary: AssertionError: divide(5,0) did not raise ZeroDivisionError
 Proposed fix: Add check for divisor == 0
 Applying fix...
 Re-running tests...
+
 ```
 
 **Final Report:**
@@ -61,6 +114,7 @@ Diff example:
 +    if b == 0:
 +        raise ZeroDivisionError("division by zero")
 +    return a/b
+
 ```
 
 ### System Issue Demo
@@ -68,6 +122,7 @@ Diff example:
 ```bash
 python memory_service.py   # Terminal 1
 python run_self_healing.py --system_issue   # Terminal 2
+
 ```
 
 **Expected:**
